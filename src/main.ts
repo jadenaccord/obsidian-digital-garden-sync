@@ -11,9 +11,12 @@ import {
     FileSystemAdapter,
     TextComponent,
     ValueComponent,
+    parseYaml,
 } from 'obsidian'
 import * as path from 'path'
 import { promises as fs } from 'fs'
+import fm from 'front-matter'
+import * as moment from 'moment'
 
 import { GardenSyncSettings, DEFAULT_SETTINGS, GardenSyncSettingTab, GardenSyncCommands } from './settings'
 import { PublishModal, OverrideModal } from './modals'
@@ -35,15 +38,16 @@ export default class GardenSyncPlugin extends Plugin {
                 'dice',
                 'Garden Sync: Publish current note',
                 () => {
-                    if (this.settings.alwaysAsk) {
-                        new PublishModal(
-                            this.app,
-                            this,
-                            this.app.workspace.getActiveFile()
-                        ).open()
-                    } else {
-                        this.publishNote(this.app.workspace.getActiveFile())
-                    }
+                    // if (this.settings.alwaysAsk) {
+                    //     new PublishModal(
+                    //         this.app,
+                    //         this,
+                    //         this.app.workspace.getActiveFile()
+                    //     ).open()
+                    // } else {
+                    //     this.publishNote(this.app.workspace.getActiveFile())
+                    // }
+                    this.readFrontmatter(this.app.workspace.getActiveFile())
                 }
             )
         }
@@ -79,6 +83,30 @@ export default class GardenSyncPlugin extends Plugin {
     refresh () {
         this.unload()
         this.load()
+    }
+
+    async readFrontmatter(file: TFile) {
+        // read file
+        let content = await this.app.vault.read(file)
+        // parse YAML to object and return
+        let yaml = parseYaml(fm(content).frontmatter)
+        console.log(JSON.stringify(yaml))
+        return yaml
+    }
+
+    async checkNotePublic(file: TFile) {
+        // get frontmatter from file
+        let frontmatter = await this.readFrontmatter(file)
+        // get public attribute from frontmatter
+        let publicValueString = frontmatter[this.settings.publicTag]
+        // check if value of public attribute is true
+        let publicValue = (publicValueString === true || publicValueString === 'true' || publicValueString === 'yes')
+        return publicValue
+    }
+
+    async updateFrontmatter(file: TFile) {
+        // TODO: update YAML frontmatter for new publish data
+        let publishedDate = moment().format(this.settings.dateFormat)
     }
 
     // publish the current note
@@ -168,59 +196,24 @@ export default class GardenSyncPlugin extends Plugin {
                 new Notice('Garden content directory does not exist. Please check path in settings.')
             }
         }
+    }
+}
 
-        // OLD:
+class SampleModal extends Modal {
+    text: string
 
-        // check if file exists already, if so: ask user if they want to override existing file using modal
-        // try {
-        //     await fs.access(normalizedNewPath)
-        //     // new Notice('File exists already. Override?') // debug
+    constructor(app: App, text: string) {
+        super(app)
+        this.text = text
+    }
 
-        //     if (this.settings.alwaysOverride) {
-        //         await fs.copyFile(normalizedOldPath, normalizedNewPath)
-        //         // check if file exists, after creation
-        //         try {
-        //             await fs.access(normalizedNewPath)
-        //             new Notice('Published note: ' + file.name)
-        //         } catch (err) {
-        //             // no access to file (does not exist?)
-        //             new Notice('Error copying file')
-        //             adapter.write('garden-sync-error.md', err)
-        //         }
-        //     } else {
-        //         // ask user if they want to override existing file
-        //         new OverrideModal(
-        //             this.app,
-        //             this,
-        //             normalizedNewPath,
-        //             async _path => {
-        //                 // copy file to garden directory
-        //                 await fs.copyFile(normalizedOldPath, normalizedNewPath)
-        //                 // check if file exists, after creation
-        //                 try {
-        //                     await fs.access(normalizedNewPath)
-        //                     new Notice('Published note: ' + file.name)
-        //                 } catch (err) {
-        //                     // no access to file (does not exist?)
-        //                     new Notice('Error copying file')
-        //                     adapter.write('garden-sync-error.md', err)
-        //                 }
-        //             }
-        //         ).open()
-        //     }
-        // } catch (err) {
-        //     // no access to file (does not exist?)
+    onOpen() {
+        let { contentEl } = this
+        contentEl.setText(this.text)
+    }
 
-        //     // copy file to garden directory
-        //     try {
-        //         // copy file
-        //         await fs.copyFile(normalizedOldPath, normalizedNewPath)
-                
-        //     } catch (err) {
-        //         // fs.copyFile returned an error
-        //         new Notice('Error copying file')
-        //         adapter.write('garden-sync-error.md', err)
-        //     }
-        // }
+    onClose() {
+        let { contentEl } = this
+        contentEl.empty()
     }
 }

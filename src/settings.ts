@@ -13,13 +13,17 @@ export interface GardenSyncSettings {
     alwaysAsk: boolean
     alwaysOverride: boolean
     ribbonIcon: boolean
+    publicTag: string
+    dateFormat: string
 }
 
 export const DEFAULT_SETTINGS: GardenSyncSettings = {
     gardenPath: '',
     alwaysAsk: true,
     alwaysOverride: false,
-    ribbonIcon: true
+    ribbonIcon: true,
+    publicTag: 'public',
+    dateFormat: 'YYYY-MM-DDTHH:mm:ssZ',
 }
 
 // garden sync setting tab
@@ -91,6 +95,34 @@ export class GardenSyncSettingTab extends PluginSettingTab {
                     .setValue(this.plugin.settings.ribbonIcon)
                     .onChange(async toggle => {
                         this.plugin.settings.ribbonIcon = toggle
+                        await this.plugin.saveData(this.plugin.settings)
+                    })
+            )
+
+        // settings.publicTag
+        new Setting(containerEl)
+            .setName('YAML public attribute')
+            .setDesc("Set the YAML attribute used to check if a file is public. (The value will have to be set to 'true' or 'yes')")
+            .addText(text =>
+                text
+                    .setPlaceholder('public')
+                    .setValue(this.plugin.settings.publicTag)
+                    .onChange(async value => {
+                        this.plugin.settings.publicTag = value
+                        await this.plugin.saveData(this.plugin.settings)
+                    })
+            )
+
+        // settings.dateFormat
+        new Setting(containerEl)
+            .setName('Date format')
+            .setDesc("Set the format for output date. See https://momentjs.com/docs/#/displaying/format/")
+            .addText(text =>
+                text
+                    .setPlaceholder('YYYY-MM-DDTHH:mm:ssZ')
+                    .setValue(this.plugin.settings.dateFormat)
+                    .onChange(async value => {
+                        this.plugin.settings.dateFormat = value
                         await this.plugin.saveData(this.plugin.settings)
                     })
             )

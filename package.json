@@ -26,6 +26,7 @@
     "front-matter": "^4.0.2",
     "moment": "^2.29.1",
     "path": "^0.12.7",
+    "performance": "^1.4.0",
     "yaml": "^1.10.2"
   }
 }

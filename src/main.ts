@@ -5,6 +5,7 @@ import { promises as fs } from 'fs'
 import * as YAML from 'yaml'
 import fm from 'front-matter'
 import moment from 'moment'
+import { performance } from 'perf_hooks'
 // const moment = require('moment')
 
 import {
@@ -31,22 +32,9 @@ export default class GardenSyncPlugin extends Plugin {
         if (this.settings.ribbonIcon) {
             this.addRibbonIcon(
                 'dice',
-                'Garden Sync: Publish current note',
+                'Garden Sync: Publish vault',
                 () => {
-                    // if (this.settings.alwaysAsk) {
-                    //     new PublishModal(
-                    //         this.app,
-                    //         this,
-                    //         this.app.workspace.getActiveFile()
-                    //     ).open()
-                    // } else {
-                    //     this.publishNote(this.app.workspace.getActiveFile())
-                    // }
-                    // TODO: set this to publish function again
-                    this.updateFrontmatter(
-                        this.app.workspace.getActiveFile(),
-                        true
-                    )
+                    this.publishVault()
                 }
             )
         }
@@ -78,7 +66,6 @@ export default class GardenSyncPlugin extends Plugin {
         console.log('unloading plugin')
     }
 
-    // FIXME:
     refresh() {
         this.unload()
         this.load()
@@ -132,16 +119,31 @@ export default class GardenSyncPlugin extends Plugin {
     async checkNotePublic(file: TFile) {
         // get frontmatter from file
         let frontmatter = await this.readFrontmatter(file)
-        // get public attribute from frontmatter
-        let publicValueString = YAML.parse(frontmatter.frontmatter)[
-            this.settings.publicTag
-        ]
-        // check if value of public attribute is true
-        let publicValue =
-            publicValueString === true ||
-            publicValueString === 'true' ||
-            publicValueString === 'yes'
-        return publicValue
+
+        // check if frontmatter exists
+        if (frontmatter.frontmatter) {
+            // parse frontmatter
+            let parsedFrontmatter = YAML.parse(frontmatter.frontmatter)
+            if(parsedFrontmatter.hasOwnProperty(this.settings.publicTag) && parsedFrontmatter[this.settings.publicTag] !== null) {
+                // console.log('public frontmatter exists')
+                if (isBoolean(parsedFrontmatter[this.settings.publicTag]) && parsedFrontmatter[this.settings.publicTag] !== null) {
+                    // console.log('public frontmatter is boolean')
+                    // get public attribute from frontmatter
+                    let publicValue = YAML.parse(frontmatter.frontmatter)[this.settings.publicTag]
+                    // return publicValue
+                    return publicValue
+                } else {
+                    // console.log('public frontmatter is not boolean')
+                    return this.settings.defaultPublic
+                }
+            } else {
+                // console.log('public frontmatter does not exist or is null')
+                return this.settings.defaultPublic
+            }
+        } else {
+            // console.log('no frontmatter')
+            return this.settings.defaultPublic
+        }
     }
 
     async setNotePublic(file: TFile, _public: boolean) {
@@ -171,8 +173,9 @@ export default class GardenSyncPlugin extends Plugin {
         await this.writeFrontmatter(file, newFrontmatter, oldBody)
     }
 
+    // TODO: add give notice setting and implement it everywhere that this function is called
     // publish the current note
-    async publishNote(file: TFile) {
+    async publishNote(file: TFile, giveNotice: boolean) {
         let adapter = this.app.vault.adapter as FileSystemAdapter
 
         // TODO: I have to see how this works on non-Windows systems, paths might be tricky
@@ -182,38 +185,51 @@ export default class GardenSyncPlugin extends Plugin {
         let newPath = path.join(this.settings.gardenPath, file.path)
         let normalizedNewPath = newPath.replace(/\\/g, '/')
 
+        let noteOldPublic = await this.checkNotePublic(file)
         this.setNotePublic(file, true)
 
         const checkFileCreated = async (_path: string) => {
             // check if file exists, after creation
             try {
                 await fs.access(_path)
-                new Notice('Published note: ' + file.name)
+                console.log('Published note: ' + file.name)
+                giveNotice && new Notice('Published note: ' + file.name)
+
+                this.updateFrontmatter(file, true)
             } catch (err) {
                 // no access to file (does not exist?)
-                new Notice('Error copying file')
+                console.log('Error copying file: ' + file.name)
+                giveNotice && new Notice('Error copying file')
                 adapter.write('garden-sync-error.md', err)
 
-                this.setNotePublic(file, false)
+                this.setNotePublic(file, noteOldPublic)
             }
         }
 
+        // copy file to content directory
         const copyFile = async (_old: string, _new: string) => {
-            new Notice('Publishing note...')
+            // console.log('Publishing note: ' + file.name)
+            // check if file gets copied
             try {
+                // file gets copied
                 await fs.copyFile(_old, _new)
+                // check if file is actually created
                 checkFileCreated(_new)
             } catch (err) {
-                new Notice('Error copying file!')
-                new Notice("See 'garden-sync-error.md'")
+                // could not copy file
+                console.log('Error copying file: ' + file.name)
+                giveNotice && new Notice('Error copying file: ' + file.name)
+                console.log("See 'garden-sync-error.md'")
+                giveNotice && new Notice("See 'garden-sync-error.md'")
                 adapter.write('garden-sync-error.md', err)
 
-                this.setNotePublic(file, false)
+                this.setNotePublic(file, noteOldPublic)
             }
         }
 
         // check if file exists
         try {
+            // file gets accessed
             await fs.access(normalizedNewPath)
             // check if alwaysOverride is enabled
             if (this.settings.alwaysOverride) {
@@ -221,7 +237,7 @@ export default class GardenSyncPlugin extends Plugin {
                 copyFile(normalizedOldPath, normalizedNewPath)
             } else {
                 // alwaysOverride is false, ask user before copying
-                new OverrideModal(this.app, this, async () => {
+                new OverrideModal(this.app, file, async () => {
                     copyFile(normalizedOldPath, normalizedNewPath)
                 }).open()
             }
@@ -238,9 +254,43 @@ export default class GardenSyncPlugin extends Plugin {
                     'Garden content directory does not exist. Please check path in settings.'
                 )
 
-                this.setNotePublic(file, true)
+                this.setNotePublic(file, noteOldPublic)
             }
         }
+    }
+
+    // TODO: ask before publishing entire vault, if settings.alwaysAsk is true
+
+    // publish entire vault
+    async publishVault() {
+        let t0 = performance.now()
+        // get all files
+        let allMarkdownFiles = this.app.vault.getMarkdownFiles()
+        // count files
+        let allFilesCount = allMarkdownFiles.length
+        let attemptedFilesCount = 0
+        let publishedFilesCount = 0
+        let t1 = performance.now()
+        // publish each file
+        allMarkdownFiles.forEach(async (markdownFile) => {
+            // check if file is public
+            let notePublic = await this.checkNotePublic(markdownFile)
+            if (notePublic) {
+                // note is public, so publish it
+                await this.publishNote(markdownFile, false)
+                publishedFilesCount++
+                attemptedFilesCount++
+            } else {
+                // note is private
+                console.log(`${markdownFile.name} is private`)
+                attemptedFilesCount++
+            }
+            if (attemptedFilesCount === allFilesCount) {
+                let t2 = performance.now()
+                console.log(`Published ${publishedFilesCount}/${allFilesCount} notes in ${t1-t0} + ${t2-t1} = ${t2-t0} ms`)
+                new Notice(`Published ${publishedFilesCount}/${allFilesCount} notes`)
+            }
+        })
     }
 }
 

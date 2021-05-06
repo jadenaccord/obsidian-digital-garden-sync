@@ -4,8 +4,9 @@ import { PublishModal } from './modals'
 
 declare class GardenSyncPlugin extends Plugin {
     settings: GardenSyncSettings
-    publishNote: (e: any) => void
-    refresh: (e: any) => void
+    publishNote: (a: any, b: any) => void
+    publishVault: () => void
+    refresh: () => void
 }
 
 export interface GardenSyncSettings {
@@ -14,6 +15,7 @@ export interface GardenSyncSettings {
     alwaysOverride: boolean
     ribbonIcon: boolean
     publicTag: string
+    defaultPublic: boolean
     dateFormat: string
 }
 
@@ -23,6 +25,7 @@ export const DEFAULT_SETTINGS: GardenSyncSettings = {
     alwaysOverride: false,
     ribbonIcon: true,
     publicTag: 'public',
+    defaultPublic: false,
     dateFormat: 'YYYY-MM-DDTHH:mm:ssZ',
 }
 
@@ -102,7 +105,9 @@ export class GardenSyncSettingTab extends PluginSettingTab {
         // settings.publicTag
         new Setting(containerEl)
             .setName('YAML public attribute')
-            .setDesc("Set the YAML attribute used to check if a file is public. (The value will have to be set to 'true' or 'yes')")
+            .setDesc(
+                "Set the YAML attribute used to check if a file is public. (The value will have to be set to true)"
+            )
             .addText(text =>
                 text
                     .setPlaceholder('public')
@@ -113,10 +118,27 @@ export class GardenSyncSettingTab extends PluginSettingTab {
                     })
             )
 
+        // settings.defaultPublic
+        new Setting(containerEl)
+            .setName('Default public')
+            .setDesc(
+                'If enabled, all files without a YAML public attribute will automatically be set to public rather than private'
+            )
+            .addToggle(toggle =>
+                toggle
+                    .setValue(this.plugin.settings.defaultPublic)
+                    .onChange(async toggle => {
+                        this.plugin.settings.defaultPublic = toggle
+                        await this.plugin.saveData(this.plugin.settings)
+                    })
+            )
+
         // settings.dateFormat
         new Setting(containerEl)
             .setName('Date format')
-            .setDesc("Set the format for output date. See https://momentjs.com/docs/#/displaying/format/")
+            .setDesc(
+                'Set the format for output date. See https://momentjs.com/docs/#/displaying/format/'
+            )
             .addText(text =>
                 text
                     .setPlaceholder('YYYY-MM-DDTHH:mm:ssZ')
@@ -126,9 +148,6 @@ export class GardenSyncSettingTab extends PluginSettingTab {
                         await this.plugin.saveData(this.plugin.settings)
                     })
             )
-
-        // TODO: Toggle automatic publishes
-        // TODO: Automatic publishes interval
 
         // TODO: Toggle notices for automatic publishes
     }
@@ -158,7 +177,7 @@ export class GardenSyncCommands {
                             ).open()
                         } else {
                             this.plugin.publishNote(
-                                this.plugin.app.workspace.getActiveFile()
+                                this.plugin.app.workspace.getActiveFile(), false
                             )
                         }
                     }
@@ -168,58 +187,73 @@ export class GardenSyncCommands {
             },
         })
 
-        // FIXME:
+        // Publish vault command
+        this.plugin.addCommand({
+            id: 'publish-vault',
+            name: 'Publish vault',
+            checkCallback: (checking: boolean) => {
+                let leaf = this.plugin.app.workspace.activeLeaf
+                if (leaf) {
+                    if (!checking) {
+                        this.plugin.publishVault()
+                    }
+                    return true
+                }
+                return false
+            },
+        })
+
         // Refresh plugin command
         this.plugin.addCommand({
             id: 'refresh-plugin',
             name: 'Refresh plugin',
             callback: () => {
-                this.plugin.refresh;
+                this.plugin.refresh();
             }
         })
 
         // region: Toggle setting commands
         // Toggle always ask command
-        this.plugin.addCommand({
-            id: 'toggle-always-ask',
-            name: 'Toggle always ask before publishing note',
-            callback: () => {
-                this.plugin.settings.alwaysAsk = !this.plugin.settings.alwaysAsk
-                new Notice(
-                    "'Always ask' set to: " + this.plugin.settings.alwaysAsk
-                )
-                this.plugin.saveData(this.plugin.settings)
-            },
-        })
+        // this.plugin.addCommand({
+        //     id: 'toggle-always-ask',
+        //     name: 'Toggle always ask before publishing note',
+        //     callback: () => {
+        //         this.plugin.settings.alwaysAsk = !this.plugin.settings.alwaysAsk
+        //         new Notice(
+        //             "'Always ask' set to: " + this.plugin.settings.alwaysAsk
+        //         )
+        //         this.plugin.saveData(this.plugin.settings)
+        //     },
+        // })
 
-        // Toggle always override command
-        this.plugin.addCommand({
-            id: 'toggle-always-override',
-            name: 'Toggle always override existing file (DESTRUCTIVE)',
-            callback: () => {
-                this.plugin.settings.alwaysOverride = !this.plugin.settings
-                    .alwaysOverride
-                new Notice(
-                    "'Always override' set to: " +
-                        this.plugin.settings.alwaysOverride
-                )
-                this.plugin.saveData(this.plugin.settings)
-            },
-        })
+        // // Toggle always override command
+        // this.plugin.addCommand({
+        //     id: 'toggle-always-override',
+        //     name: 'Toggle always override existing file (DESTRUCTIVE)',
+        //     callback: () => {
+        //         this.plugin.settings.alwaysOverride = !this.plugin.settings
+        //             .alwaysOverride
+        //         new Notice(
+        //             "'Always override' set to: " +
+        //                 this.plugin.settings.alwaysOverride
+        //         )
+        //         this.plugin.saveData(this.plugin.settings)
+        //     },
+        // })
 
-        // Toggle ribbon icon command
-        this.plugin.addCommand({
-            id: 'toggle-ribbon-icon',
-            name: 'Toggle ribbon icon (publish current note)',
-            callback: () => {
-                this.plugin.settings.ribbonIcon = !this.plugin.settings
-                    .ribbonIcon
-                new Notice(
-                    "'Always override' set to: " +
-                        this.plugin.settings.ribbonIcon
-                )
-                this.plugin.saveData(this.plugin.settings)
-            },
-        })
+        // // Toggle ribbon icon command
+        // this.plugin.addCommand({
+        //     id: 'toggle-ribbon-icon',
+        //     name: 'Toggle ribbon icon (publish current note)',
+        //     callback: () => {
+        //         this.plugin.settings.ribbonIcon = !this.plugin.settings
+        //             .ribbonIcon
+        //         new Notice(
+        //             "'Always override' set to: " +
+        //                 this.plugin.settings.ribbonIcon
+        //         )
+        //         this.plugin.saveData(this.plugin.settings)
+        //     },
+        // })
     }
 }

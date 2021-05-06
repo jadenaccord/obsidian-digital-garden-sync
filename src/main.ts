@@ -31,7 +31,7 @@ export default class GardenSyncPlugin extends Plugin {
         // publish note ribbon icon, if ribbon icon setting is enabled
         if (this.settings.ribbonIcon) {
             this.addRibbonIcon(
-                'dice',
+                'paper-plane',
                 'Garden Sync: Publish vault',
                 () => {
                     this.publishVault()

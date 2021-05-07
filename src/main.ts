@@ -18,6 +18,7 @@ import { PublishModal, OverrideModal, SyncModal } from './modals'
 
 export default class GardenSyncPlugin extends Plugin {
     settings: GardenSyncSettings
+    statusBarItem: HTMLElement
 
     async onload() {
         console.log('Loading Digital Garden Sync')
@@ -58,7 +59,8 @@ export default class GardenSyncPlugin extends Plugin {
         }
 
         // sample status bar item
-        this.addStatusBarItem().setText('Garden Sync Active')
+        // this.statusBarItem = this.addStatusBarItem()
+        // this.statusBarItem.setText('Garden Sync Active')
 
         // Add setting tab
         this.addSettingTab(new GardenSyncSettingTab(this.app, this))

@@ -1,10 +1,10 @@
 {
 	"id": "digital-garden-sync",
 	"name": "Digital Garden Sync",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"minAppVersion": "0.9.12",
-	"description": "Sync your Obsidian notes with your (external) Digital Garden, while keeping your private notes private.",
+	"description": "Sync your Obsidian notes with your external Digital Garden, while keeping your private notes private.",
 	"author": "Jaden Accord",
-	"authorUrl": "https://github.com/Jayby18/obsidian-digital-garden-sync",
-	"isDesktopOnly": false
+	"authorUrl": "https://jadenaccord.com",
+	"isDesktopOnly": true
 }

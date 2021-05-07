@@ -1,57 +1,59 @@
-## Obsidian Sample Plugin
+# Digital Garden Sync for Obsidian
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Sync your Obsidian notes with your (external) Digital Garden, while keeping your private notes private.
 
-This project uses Typescript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in Typescript Definition format, which contains TSDoc comments describing what it does.
+## Usage
 
-**Note:** The Obsidian API is still in early alpha and is subject to change at any time!
+### Simple Publish
+Publishes your active note, regardless of whether it has `public: true` in its YAML frontmatter.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Changes the default font color to red using `styles.css`.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+1. Enter the path to your digital garden's content directory in the plugin's settings
+2. Use the command, ribbon icon or hotkey to 'publish' your active note (i.e. copy the file to the content directory)
 
-### First time developing plugins?
+### Vault Sync
+Scans your entire vault for files with `public: true` in their YAML frontmatter and publishes them.
 
-Quick starting guide for new plugin devs:
+### Auto Publish
+Same as Vault Publish, but automatically repeats on an interval set by the user.
 
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+### Settings
+- Garden content directory
+    - Set the path that published notes will be synced to
+- Always ask before publishing note
+    - Every publish request will open a pop-up to confirm publishing.
+- Always override existing file (DESTRUCTIVE)
+    - Never ask before overriding files in garden content directory. DESTRUCTIVE to digital garden files, not files in vault (unless vault is set as garden content directory).
+- Toggle ribbon icon (publish current note)
+    - Toggles icon on the ribbon to publish current note (reload Obsidian to take effect)
+- YAML public attribute
+    - Set the YAML attribute used to check if a file is public. (The value will have to be set to 'true' or 'yes')
+- Date format
+    - Set the format for output date. See https://momentjs.com/docs/#/displaying/format/
 
-### Releasing new releases
+## Examples
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments.
-- Publish the release.
+## Roadmap
 
-### Adding your plugin to the community plugin list
+- [x] Publish active file
+- [x] Read and update YAML frontmatter
+- [x] Sync entire vault
+- [ ] Automatically sync entire vault with digital garden (user set interval)
+- [ ] Two-way sync
+- [ ] Automatically git push
 
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+## Version History
 
-### How to use
+### v0.1.0
+- Publish active file
+- Read and update YAML frontmatter
+- Sync entire vault
 
-- Clone this repo.
-- `npm i` or `yarn` to install dependencies
-- `npm run dev` to start compilation in watch mode.
+## Contributing
+Contributions in the form of bug reports, bug fixes, documentation and other tweaks are always welcome. You can work on more major changes, but please reach out first.
 
-### Manually installing the plugin
-
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-### API Documentation
-
-See https://github.com/obsidianmd/obsidian-api
+## Support
+<form action="https://www.paypal.com/donate" method="post" target="_top">
+<input type="hidden" name="hosted_button_id" value="FNCKUEA58K3PA" />
+<input type="image" src="https://www.paypalobjects.com/en_US/NL/i/btn/btn_donateCC_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+<img alt="" border="0" src="https://www.paypal.com/en_NL/i/scr/pixel.gif" width="1" height="1" />
+</form>

@@ -23,7 +23,7 @@ export class PublishModal extends Modal {
         let publishButton = new ButtonComponent(contentEl)
             .setButtonText('Publish')
             .onClick(() => {
-                this.plugin.publishNote(this.file, false)
+                this.plugin.publishNote(this.file, true)
                 this.close()
             })
 

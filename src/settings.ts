@@ -177,9 +177,7 @@ export class GardenSyncCommands {
                                 this.plugin.app.workspace.getActiveFile()
                             ).open()
                         } else {
-                            this.plugin.publishNote(
-                                this.plugin.app.workspace.getActiveFile(), false
-                            )
+                            this.plugin.publishNote(this.plugin.app.workspace.getActiveFile(), true)
                         }
                     }
                     return true

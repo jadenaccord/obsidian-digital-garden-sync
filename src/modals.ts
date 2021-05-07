@@ -2,9 +2,10 @@ import { Setting, PluginSettingTab, App, Plugin, TFile, Modal, ButtonComponent }
 
 declare class GardenSyncPlugin extends Plugin {
     publishNote: (e: any, f: any) => void
+    publishVault: () => void
 }
 
-// modal to confirm publish
+// modal to confirm note publish
 export class PublishModal extends Modal {
     app: App
     plugin: GardenSyncPlugin
@@ -23,6 +24,39 @@ export class PublishModal extends Modal {
             .setButtonText('Publish')
             .onClick(() => {
                 this.plugin.publishNote(this.file, false)
+                this.close()
+            })
+
+        let cancelButton = new ButtonComponent(contentEl)
+            .setButtonText('Cancel')
+            .onClick(() => {
+                this.close()
+            })
+    }
+
+    onClose() {
+        let { contentEl } = this
+        contentEl.empty()
+    }
+}
+
+// modal to confirm vault sync
+export class SyncModal extends Modal {
+    app: App
+    plugin: GardenSyncPlugin
+
+    constructor(app: App, plugin: GardenSyncPlugin) {
+        super(app)
+        this.plugin = plugin
+    }
+
+    onOpen() {
+        let { contentEl } = this
+        contentEl.setText('Sync vault?')
+        let syncButton = new ButtonComponent(contentEl)
+            .setButtonText('Sync')
+            .onClick(() => {
+                this.plugin.publishVault()
                 this.close()
             })
 

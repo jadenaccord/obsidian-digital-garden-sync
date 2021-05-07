@@ -10,7 +10,7 @@ Publishes your active note, regardless of whether it has `public: true` in its Y
 1. Enter the path to your digital garden's content directory in the plugin's settings
 2. Use the command, ribbon icon or hotkey to 'publish' your active note (i.e. copy the file to the content directory)
 
-### Vault Publish
+### Vault Sync
 Scans your entire vault for files with `public: true` in their YAML frontmatter and publishes them.
 
 ### Auto Publish
@@ -34,7 +34,19 @@ Same as Vault Publish, but automatically repeats on an interval set by the user.
 
 ## Roadmap
 
+- [x] Publish active file
+- [x] Read and update YAML frontmatter
+- [x] Sync entire vault
+- [ ] Automatically sync entire vault with digital garden (user set interval)
+- [ ] Two-way sync
+- [ ] Automatically git push
+
 ## Version History
+
+### v0.1.0
+- Publish active file
+- Read and update YAML frontmatter
+- Sync entire vault
 
 ## Contributing
 Contributions in the form of bug reports, bug fixes, documentation and other tweaks are always welcome. You can work on more major changes, but please reach out first.

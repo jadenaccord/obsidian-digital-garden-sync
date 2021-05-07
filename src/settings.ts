@@ -1,6 +1,6 @@
 import { Setting, PluginSettingTab, App, Plugin, Notice } from 'obsidian'
 
-import { PublishModal } from './modals'
+import { PublishModal, SyncModal } from './modals'
 
 declare class GardenSyncPlugin extends Plugin {
     settings: GardenSyncSettings
@@ -168,7 +168,8 @@ export class GardenSyncCommands {
                 let leaf = this.plugin.app.workspace.activeLeaf
                 if (leaf) {
                     if (!checking) {
-                        // this.publishNote(this.app.workspace.getActiveFile());
+                        // ENTRY POINT 3 for publishing
+                        // check if alwaysAsk is enabled, if so, ask before publishing
                         if (this.plugin.settings.alwaysAsk) {
                             new PublishModal(
                                 this.plugin.app,
@@ -195,7 +196,13 @@ export class GardenSyncCommands {
                 let leaf = this.plugin.app.workspace.activeLeaf
                 if (leaf) {
                     if (!checking) {
-                        this.plugin.publishVault()
+                        // ENTRY POINT 4 for publishing
+                        // check if alwaysAsk is enabled, if so, ask before publishing
+                        if (this.plugin.settings.alwaysAsk) {
+                            new SyncModal(this.plugin.app, this.plugin).open()
+                        } else {
+                            this.plugin.publishVault()
+                        }
                     }
                     return true
                 }
@@ -211,49 +218,5 @@ export class GardenSyncCommands {
                 this.plugin.refresh();
             }
         })
-
-        // region: Toggle setting commands
-        // Toggle always ask command
-        // this.plugin.addCommand({
-        //     id: 'toggle-always-ask',
-        //     name: 'Toggle always ask before publishing note',
-        //     callback: () => {
-        //         this.plugin.settings.alwaysAsk = !this.plugin.settings.alwaysAsk
-        //         new Notice(
-        //             "'Always ask' set to: " + this.plugin.settings.alwaysAsk
-        //         )
-        //         this.plugin.saveData(this.plugin.settings)
-        //     },
-        // })
-
-        // // Toggle always override command
-        // this.plugin.addCommand({
-        //     id: 'toggle-always-override',
-        //     name: 'Toggle always override existing file (DESTRUCTIVE)',
-        //     callback: () => {
-        //         this.plugin.settings.alwaysOverride = !this.plugin.settings
-        //             .alwaysOverride
-        //         new Notice(
-        //             "'Always override' set to: " +
-        //                 this.plugin.settings.alwaysOverride
-        //         )
-        //         this.plugin.saveData(this.plugin.settings)
-        //     },
-        // })
-
-        // // Toggle ribbon icon command
-        // this.plugin.addCommand({
-        //     id: 'toggle-ribbon-icon',
-        //     name: 'Toggle ribbon icon (publish current note)',
-        //     callback: () => {
-        //         this.plugin.settings.ribbonIcon = !this.plugin.settings
-        //             .ribbonIcon
-        //         new Notice(
-        //             "'Always override' set to: " +
-        //                 this.plugin.settings.ribbonIcon
-        //         )
-        //         this.plugin.saveData(this.plugin.settings)
-        //     },
-        // })
     }
 }

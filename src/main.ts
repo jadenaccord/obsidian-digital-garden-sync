@@ -14,7 +14,7 @@ import {
     GardenSyncSettingTab,
     GardenSyncCommands,
 } from './settings'
-import { PublishModal, OverrideModal } from './modals'
+import { PublishModal, OverrideModal, SyncModal } from './modals'
 
 export default class GardenSyncPlugin extends Plugin {
     settings: GardenSyncSettings
@@ -34,7 +34,12 @@ export default class GardenSyncPlugin extends Plugin {
                 'sync',
                 'Sync vault with digital garden',
                 () => {
-                    this.publishVault()
+                    // ENTRY POINT 1 for publishing
+                    if (this.settings.alwaysAsk) {
+                        new SyncModal(this.app, this).open()
+                    } else {
+                        this.publishVault()
+                    }
                 }
             )
 
@@ -42,7 +47,12 @@ export default class GardenSyncPlugin extends Plugin {
                 'paper-plane',
                 'Publish note to digital garden',
                 () => {
-                    this.publishNote(this.app.workspace.getActiveFile(), true)
+                    // ENTRY POINT 2 for publishing
+                    if (this.settings.alwaysAsk) {
+                        new PublishModal(this.app, this, this.app.workspace.getActiveFile()).open()
+                    } else {
+                        this.publishNote(this.app.workspace.getActiveFile(), true)
+                    }
                 }
             )
         }

@@ -28,13 +28,21 @@ export default class GardenSyncPlugin extends Plugin {
             await this.loadData()
         )
 
-        // publish note ribbon icon, if ribbon icon setting is enabled
+        // ribbon icons, if ribbon icon setting is enabled
         if (this.settings.ribbonIcon) {
             this.addRibbonIcon(
-                'paper-plane',
-                'Garden Sync: Publish vault',
+                'sync',
+                'Sync vault with digital garden',
                 () => {
                     this.publishVault()
+                }
+            )
+
+            this.addRibbonIcon(
+                'paper-plane',
+                'Publish note to digital garden',
+                () => {
+                    this.publishNote(this.app.workspace.getActiveFile(), true)
                 }
             )
         }

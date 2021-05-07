@@ -61,7 +61,7 @@ export class GardenSyncSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('Always ask before publishing note')
             .setDesc(
-                'Every publish request will open a pop-up to confirm publishing.'
+                'Every publish request will open a pop-up to confirm publishing'
             )
             .addToggle(toggle =>
                 toggle
@@ -76,7 +76,7 @@ export class GardenSyncSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('Always override existing file (DESTRUCTIVE)')
             .setDesc(
-                'Never ask before overriding files in garden content directory. DESTRUCTIVE to digital garden files, not files in vault (unless vault is set as garden content directory).'
+                'Never ask before overriding files in garden content directory. DESTRUCTIVE to files in destination directory.'
             )
             .addToggle(toggle =>
                 toggle
@@ -89,9 +89,9 @@ export class GardenSyncSettingTab extends PluginSettingTab {
 
         // settings.ribbonIcon
         new Setting(containerEl)
-            .setName('Toggle ribbon icon (publish current note)')
+            .setName('Toggle ribbon icons')
             .setDesc(
-                'Toggles icon on the ribbon to publish current note (reload Obsidian to take effect)'
+                'Toggles icons on the ribbon to publish current note or sync entire vaults (reload Obsidian to take effect)'
             )
             .addToggle(toggle =>
                 toggle
@@ -106,7 +106,7 @@ export class GardenSyncSettingTab extends PluginSettingTab {
         new Setting(containerEl)
             .setName('YAML public attribute')
             .setDesc(
-                "Set the YAML attribute used to check if a file is public. (The value will have to be set to true)"
+                "Set the YAML attribute used to check if a file is public (The value will have to be set to true)"
             )
             .addText(text =>
                 text

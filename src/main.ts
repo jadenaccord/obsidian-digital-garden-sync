@@ -69,17 +69,17 @@ export default class GardenSyncPlugin extends Plugin {
         new GardenSyncCommands(this).addCommands()
 
         // sample registers functions
-        this.registerCodeMirror((cm: CodeMirror.Editor) => {
-            console.log('codemirror', cm)
-        })
+        // this.registerCodeMirror((cm: CodeMirror.Editor) => {
+        //     console.log('codemirror', cm)
+        // })
 
-        this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-            console.log('click', evt)
-        })
+        // this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
+        //     console.log('click', evt)
+        // })
 
-        this.registerInterval(
-            window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000)
-        )
+        // this.registerInterval(
+        //     window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000)
+        // )
     }
 
     onunload() {

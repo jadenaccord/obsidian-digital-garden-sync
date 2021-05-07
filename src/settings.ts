@@ -59,7 +59,7 @@ export class GardenSyncSettingTab extends PluginSettingTab {
 
         // settings.alwaysAsk
         new Setting(containerEl)
-            .setName('Always ask before publishing note')
+            .setName('Always ask before publishing')
             .setDesc(
                 'Every publish request will open a pop-up to confirm publishing'
             )

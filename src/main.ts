@@ -4,9 +4,9 @@ import * as path from 'path'
 import { promises as fs } from 'fs'
 import * as YAML from 'yaml'
 import fm from 'front-matter'
-import moment from 'moment'
 import { performance } from 'perf_hooks'
-// const moment = require('moment')
+//FIXME:
+import moment from 'moment' 
 
 import {
     GardenSyncSettings,
